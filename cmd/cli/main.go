@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/vorlov-bash/todolist/internal/buffers"
+	"github.com/vorlov-bash/todolist/buffers"
 	"log"
 	"os"
 )
