@@ -25,7 +25,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	buffer, err := buffers.NewFileBuffer()
+	buffer, err := buffers.NewSqlite3Buffer()
 	if err != nil {
 		log.Fatal(err)
 	}

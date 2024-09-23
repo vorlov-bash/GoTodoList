@@ -23,7 +23,7 @@ const (
 
 func printData(data []string) {
 	for i, task := range data {
-		fmt.Printf("%d. %s", i+1, task)
+		fmt.Printf("%d. %s\n", i+1, task)
 	}
 }
 
@@ -118,7 +118,7 @@ func handleExit() {
 }
 
 func main() {
-	buffer, err := buffers.NewFileBuffer()
+	buffer, err := buffers.NewSqlite3Buffer()
 
 	if err != nil {
 		log.Fatal(err)
