@@ -13,6 +13,10 @@ func NewMemoryBuffer() *MemoryBuffer {
 	return &MemoryBuffer{data: []Task{}}
 }
 
+func (m *MemoryBuffer) SupportsAutoId() bool {
+	return false
+}
+
 func (m *MemoryBuffer) Write(data Task) (Task, error) {
 	if len(m.data) > 0 && m.data[len(m.data)-1].Id >= data.Id {
 		return Task{}, &WriteError{Message: "can insert only bigger Id"}
@@ -32,7 +36,7 @@ func (m *MemoryBuffer) WriteBatch(data []Task) ([]Task, error) {
 		}
 
 		// TODO: Try to implement binary algo insert
-		for j, _ := range sortedData {
+		for j := range sortedData {
 			if task.Id == sortedData[j].Id {
 				return nil, &WriteError{Message: "input slice cannot have duplicate id's"}
 			}

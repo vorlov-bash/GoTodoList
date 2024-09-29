@@ -26,7 +26,7 @@ func CommandRemove(buff tasks.Buffer) {
 		log.Fatalf("Error parsing int: %v", err)
 	}
 
-	err = tasks.RemoveTaskById(taskIdentifier, buff)
+	err = tasks.DeleteTaskById(taskIdentifier, buff)
 
 	if err != nil {
 		log.Fatal(err)

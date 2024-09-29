@@ -82,6 +82,10 @@ func NewFileBuffer(fileName string) (*FileBuffer, error) {
 	return fBuff, nil
 }
 
+func (fb *FileBuffer) SupportsAutoId() bool {
+	return fb.MemBuff.SupportsAutoId()
+}
+
 func (fb *FileBuffer) Write(data Task) (Task, error) {
 	result, err := fb.MemBuff.Write(data)
 

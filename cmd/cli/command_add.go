@@ -31,17 +31,16 @@ func CommandAdd(buff tasks.Buffer) {
 		log.Fatalf("Error parsing date: %v", err)
 	}
 
-	taskOptions := tasks.TaskOptions{
-		Name:        *taskName,
-		Description: *taskDescription,
-		DueDate:     parsedDueDate,
-	}
-
-	_, err = tasks.InsertTask(taskOptions, buff)
+	task, err := tasks.InsertTask(
+		*taskName,
+		*taskDescription,
+		parsedDueDate,
+		buff,
+	)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("Task added: %v\n", taskOptions)
+	log.Printf("Task added: %+v\n", task)
 }

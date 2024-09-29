@@ -2,62 +2,87 @@ package tasks
 
 import (
 	"errors"
-	"fmt"
 	"github.com/google/uuid"
 	"time"
 )
 
-type TaskOptions struct {
-	Name        string
-	Description string
-	DueDate     time.Time
+type InsertTaskOptions struct {
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	DueDate     time.Time `json:"dueDate"`
+}
+
+func (ito *InsertTaskOptions) Validate() []error {
+	var errs []error
+
+	if ito.Name == "" {
+		errs = append(errs, &ValidateError{Message: "Name is mandatory", Field: "Name"})
+	}
+
+	if ito.DueDate.IsZero() {
+		errs = append(errs, &ValidateError{Message: "Due date is mandatory", Field: "DueDate"})
+	}
+
+	return errs
 }
 
 func InsertTask(
-	opts TaskOptions,
+	name string,
+	description string,
+	dueDate time.Time,
 	buff Buffer,
 ) (Task, error) {
-	var latestId int
-
-	// Get latest task from buffer
-	latestTask, err := buff.GetLatest()
-
+	newUuid, err := uuid.NewRandom()
 	if err != nil {
-		var readErr *ReadError
-		if errors.As(err, &readErr) {
-			// If buffer is empty, set latest task id to 0
-			latestId = 0
+		return Task{}, err
+	}
+
+	var task Task
+	if !buff.SupportsAutoId() {
+		var latestId int
+		// Get latest task from buffer
+		latestTask, err := buff.GetLatest()
+
+		if err != nil {
+			var readErr *ReadError
+			if errors.As(err, &readErr) {
+				// If buffer is empty, set latest task id to 0
+				latestId = 0
+			} else {
+				return Task{}, err
+			}
 		} else {
-			fmt.Println("Error getting latest task")
-			return Task{}, err
+			latestId = latestTask.Id
+		}
+
+		newId := latestId + 1
+
+		task = Task{
+			Id:          newId,
+			CreatedAt:   time.Now().Format(time.RFC3339),
+			UpdatedAt:   time.Now().Format(time.RFC3339),
+			Name:        name,
+			Description: description,
+			DueDate:     dueDate.Format(time.RFC3339),
+			isDone:      false,
+			Uuid:        newUuid.String(),
 		}
 	} else {
-		latestId = latestTask.Id
+		task = Task{
+			CreatedAt:   time.Now().Format(time.RFC3339),
+			UpdatedAt:   time.Now().Format(time.RFC3339),
+			Name:        name,
+			Description: description,
+			DueDate:     dueDate.Format(time.RFC3339),
+			isDone:      false,
+			Uuid:        newUuid.String(),
+		}
 	}
 
-	newId := latestId + 1
-	newUuid, err := uuid.NewRandom()
-
+	task, err = buff.Write(task)
 	if err != nil {
 		return Task{}, err
 	}
-
-	task := Task{
-		Id:          newId,
-		Name:        opts.Name,
-		Description: opts.Description,
-		DueDate:     opts.DueDate.Format(time.RFC3339),
-		isDone:      false,
-		Uuid:        newUuid.String(),
-	}
-
-	// Write task to buffer
-	_, err = buff.Write(task)
-
-	if err != nil {
-		return Task{}, err
-	}
-
 	return task, nil
 }
 
@@ -88,7 +113,7 @@ func GetAllTasks(
 	return tasks, nil
 }
 
-func RemoveTaskById(
+func DeleteTaskById(
 	id int,
 	buff Buffer,
 ) error {
@@ -108,6 +133,7 @@ func MarkAsDone(
 	}
 
 	task.isDone = true
+	task.UpdatedAt = time.Now().Format(time.RFC3339)
 
 	// Update task in buffer
 	_, err = buff.Update(id, task)
